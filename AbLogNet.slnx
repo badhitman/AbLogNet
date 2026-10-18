@@ -1,6 +1,9 @@
 <Solution>
   <Project Path="AbLogNet.Shared/AbLogNet.Shared.csproj" />
   <Project Path="AbLogNet.Web/AbLogNet.Web.csproj" />
+  <Folder Name="/Elements/">
+    <File Path="README.md" />
+  </Folder>
   <Project Path="AbLogNet.Client/AbLogNet.Client.csproj">
     <Deploy Solution="Debug|*" />
   </Project>
