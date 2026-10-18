@@ -6,10 +6,10 @@ using ab.context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MQTTnet;
-using MQTTnet.Client;
 using MQTTnet.Exceptions;
 using Newtonsoft.Json;
 using SharedLib;
+using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.Versioning;
 using System.Text;
@@ -22,7 +22,7 @@ namespace ServerLib;
 [SupportedOSPlatform("windows")]
 [SupportedOSPlatform("linux")]
 [SupportedOSPlatform("android")]
-public abstract class MqttBaseServiceAbstraction(IMqttClient mqttClient, MqttConfigModel mqtt_settings, MqttFactory mqttFactory, ILogger<MqttBaseServiceAbstraction> logger, INotifyService notifyService, IDbContextFactory<ParametersContext> dbFactory) : IMqttBaseService
+public abstract class MqttBaseServiceAbstraction(IMqttClient mqttClient, MqttConfigModel mqtt_settings, MqttClientFactory mqttFactory, ILogger<MqttBaseServiceAbstraction> logger, INotifyService notifyService, IDbContextFactory<ParametersContext> dbFactory) : IMqttBaseService
 {
     /// <inheritdoc/>
     protected IDbContextFactory<ParametersContext> _dbFactory = dbFactory;
@@ -32,7 +32,7 @@ public abstract class MqttBaseServiceAbstraction(IMqttClient mqttClient, MqttCon
     /// <inheritdoc/>
     protected readonly MqttConfigModel _mqtt_settings = mqtt_settings;
     /// <inheritdoc/>
-    protected readonly MqttFactory _mqttFactory = mqttFactory;
+    protected readonly MqttClientFactory _mqttFactory = mqttFactory;
     /// <inheritdoc/>
     protected readonly IMqttClient _mqttClient = mqttClient;
 
@@ -105,8 +105,8 @@ public abstract class MqttBaseServiceAbstraction(IMqttClient mqttClient, MqttCon
     public virtual Task ApplicationMessageReceiveHandledAsync(MqttApplicationMessageReceivedEventArgs e)
     {
         _logger.LogInformation($"client:{e.ClientId}; topic:{e.ApplicationMessage.Topic};");
-        if (e.ApplicationMessage.PayloadSegment.Array is not null)
-            _logger.LogInformation(Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment.Array));
+        if (!e.ApplicationMessage.Payload.IsEmpty)
+            _logger.LogInformation(e.ApplicationMessage.ConvertPayloadToString());
         if (ApplicationMessageReceivedAsync is not null)
             return ApplicationMessageReceivedAsync(e);
         else
@@ -256,7 +256,7 @@ public abstract class MqttBaseServiceAbstraction(IMqttClient mqttClient, MqttCon
             {
                 _mqttClient.ApplicationMessageReceivedAsync -= MessageReceivedEvent;
                 stopwatch.Stop();
-                byte[] payload_bytes = await CipherService.DecryptAsync([.. e.ApplicationMessage.PayloadSegment], _mqtt_settings.Secret ?? CipherService.DefaultSecret, e.ApplicationMessage.CorrelationData);
+                byte[] payload_bytes = await CipherService.DecryptAsync(e.ApplicationMessage.Payload.ToArray(), _mqtt_settings.Secret ?? CipherService.DefaultSecret, e.ApplicationMessage.CorrelationData);
                 res.Response = Encoding.UTF8.GetString(payload_bytes);
             }
         }

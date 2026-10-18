@@ -5,7 +5,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using MQTTnet;
 using MQTTnet.Adapter;
-using MQTTnet.Client;
 using SharedLib;
 using Telegram.Bot;
 
@@ -14,7 +13,7 @@ namespace ServerLib;
 /// <summary>
 /// Tools: MQTT and Email
 /// </summary>
-public class ToolsLocalService(IMqttBaseService MqttClientService, IParametersStorageService ParameterStorage, MqttFactory MqttFact, HttpClient HttpClient, IEmailService Email, IServiceProvider ServiceProvider) : IToolsService
+public class ToolsLocalService(IMqttBaseService MqttClientService, IParametersStorageService ParameterStorage, MqttClientFactory MqttFact, HttpClient HttpClient, IEmailService Email, IServiceProvider ServiceProvider) : IToolsService
 {
     /// <inheritdoc/>
     public async Task<ResponseBaseModel> StartMqtt(CancellationToken cancellation_token) => await MqttClientService.StartService(cancellation_token);

@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MQTTnet;
-using MQTTnet.Client;
 using MudBlazor.Services;
 using Newtonsoft.Json;
 using ServerLib;
@@ -76,7 +75,7 @@ public static class MauiProgram
         MqttConfigModel mqtt_settings = JsonConvert.DeserializeObject<MqttConfigModel>(_mqttConfig) ?? new() { Password = "", Secret = "", Server = "", Username = "" };
         builder.Services.AddSingleton(x => mqtt_settings);
 
-        MqttFactory mqttFactory = new();
+        MqttClientFactory mqttFactory = new();
         builder.Services.AddTransient(x => mqttFactory);
         IMqttClient mqttClient = mqttFactory.CreateMqttClient();
         builder.Services.AddSingleton(x => mqttClient);

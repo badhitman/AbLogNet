@@ -8,9 +8,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MQTTnet;
-using MQTTnet.Client;
 using Newtonsoft.Json;
 using SharedLib;
+using System.Buffers;
 using System.Runtime.Versioning;
 using System.Text;
 using Telegram.Bot;
@@ -77,7 +77,7 @@ public class MqttServerService : MqttBaseServiceAbstraction
     /// <summary>
     /// 
     /// </summary>
-    public MqttServerService(IMqttClient mqttClient, IServiceCollection services, MqttConfigModel mqtt_conf, ISystemCommandsService sys_com_service, IUsersService users_service, HttpClient http_client, ILogger<MqttServerService> logger, MqttConfigModel mqtt_settings, MqttFactory mqttFactory, IHardwiresService hardwires_service, IEmailService email, IServiceProvider service_provider, INotifyService notifyService, IDbContextFactory<ParametersContext> dbFactory, IHostApplicationLifetime applicationLifetime)
+    public MqttServerService(IMqttClient mqttClient, IServiceCollection services, MqttConfigModel mqtt_conf, ISystemCommandsService sys_com_service, IUsersService users_service, HttpClient http_client, ILogger<MqttServerService> logger, MqttConfigModel mqtt_settings, MqttClientFactory mqttFactory, IHardwiresService hardwires_service, IEmailService email, IServiceProvider service_provider, INotifyService notifyService, IDbContextFactory<ParametersContext> dbFactory, IHostApplicationLifetime applicationLifetime)
         : base(mqttClient: mqttClient, mqtt_settings: mqtt_settings, mqttFactory: mqttFactory, logger: logger, notifyService: notifyService, dbFactory: dbFactory)
     {
         _logger = logger;
@@ -97,7 +97,7 @@ public class MqttServerService : MqttBaseServiceAbstraction
     {
         await base.ApplicationMessageReceiveHandledAsync(e);
         _logger.LogInformation($"call >> {nameof(ApplicationMessageReceiveHandledAsync)}");
-        byte[] payload_bytes = await CipherService.DecryptAsync([.. e.ApplicationMessage.PayloadSegment], _mqtt_settings.Secret ?? CipherService.DefaultSecret, e.ApplicationMessage.CorrelationData);
+        byte[] payload_bytes = await CipherService.DecryptAsync(e.ApplicationMessage.Payload.ToArray(), _mqtt_settings.Secret ?? CipherService.DefaultSecret, e.ApplicationMessage.CorrelationData);
 
         string payload_json = Encoding.UTF8.GetString(payload_bytes);
         string salt = Guid.NewGuid().ToString();

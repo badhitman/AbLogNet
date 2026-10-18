@@ -6,7 +6,6 @@ using ab.context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MQTTnet;
-using MQTTnet.Client;
 using SharedLib;
 using System.Runtime.Versioning;
 
@@ -29,7 +28,7 @@ public class MqttClientService : MqttBaseServiceAbstraction
     /// <summary>
     /// 
     /// </summary>
-    public MqttClientService(IMqttClient mqttClient, ILogger<MqttClientService> logger, MqttConfigModel mqtt_settings, MqttFactory mqttFactory, INotifyService notifyService, IDbContextFactory<ParametersContext> dbFactory)
+    public MqttClientService(IMqttClient mqttClient, ILogger<MqttClientService> logger, MqttConfigModel mqtt_settings, MqttClientFactory mqttFactory, INotifyService notifyService, IDbContextFactory<ParametersContext> dbFactory)
         : base(mqttClient: mqttClient, mqtt_settings: mqtt_settings, mqttFactory: mqttFactory, logger: logger, notifyService: notifyService, dbFactory: dbFactory)
     {
 

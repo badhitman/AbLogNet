@@ -10,7 +10,7 @@ namespace ServerLib;
 
 /// <inheritdoc/>
 /// <inheritdoc/>
-public class ToolsRemoteService(IMqttBaseService mqttClientService, IParametersStorageService parameter_storage, MqttFactory mqtt_fact, HttpClient http_client, IMqttBaseService mqtt, IEmailService _email, IServiceProvider service_provider, MqttConfigModel mqtt_conf) : ToolsLocalService(mqttClientService, parameter_storage, mqtt_fact, http_client, _email, service_provider)
+public class ToolsRemoteService(IMqttBaseService mqttClientService, IParametersStorageService parameter_storage, MqttClientFactory mqtt_fact, HttpClient http_client, IMqttBaseService mqtt, IEmailService _email, IServiceProvider service_provider, MqttConfigModel mqtt_conf) : ToolsLocalService(mqttClientService, parameter_storage, mqtt_fact, http_client, _email, service_provider)
 {
 
     readonly IMqttBaseService _mqtt = mqtt;

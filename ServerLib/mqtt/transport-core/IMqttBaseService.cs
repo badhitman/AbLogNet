@@ -2,7 +2,7 @@
 // © https://github.com/badhitman 
 ////////////////////////////////////////////////
 
-using MQTTnet.Client;
+using MQTTnet;
 using SharedLib;
 
 namespace ServerLib;
