@@ -204,7 +204,7 @@ public abstract class MqttBaseServiceAbstraction(IMqttClient mqttClient, MqttCon
 
         if (message.UserProperties?.Any() == true)
             foreach (KeyValuePair<string, string> prop in message.UserProperties)
-                msg.WithUserProperty(prop.Key, prop.Value);
+                msg.WithUserProperty(prop.Key, Encoding.UTF8.GetBytes(prop.Value));
 
         MqttApplicationMessage app_msg = msg.Build();
         MqttClientPublishResult cpr = await _mqttClient.PublishAsync(app_msg, cancellation_token);
@@ -213,7 +213,7 @@ public abstract class MqttBaseServiceAbstraction(IMqttClient mqttClient, MqttCon
         {
             ReasonString = cpr.ReasonString,
             PacketIdentifier = cpr.PacketIdentifier,
-            UserProperties = cpr.UserProperties.Select(x => new KeyValuePair<string, string>(x.Name, x.Value)).ToArray()
+            UserProperties = [.. cpr.UserProperties.Select(x => new KeyValuePair<string, string>(x.Name, Encoding.UTF8.GetString(x.ValueBuffer.ToArray())))]
         };
 
         if (!cpr.IsSuccess)
