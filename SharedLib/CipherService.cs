@@ -2,8 +2,8 @@
 // © https://github.com/badhitman 
 ////////////////////////////////////////////////
 
-using System.Runtime.Versioning;
 using System.Security.Cryptography;
+using System.Runtime.Versioning;
 using System.Text;
 
 namespace SharedLib;
@@ -17,7 +17,7 @@ namespace SharedLib;
 public static class CipherService
 {
     static readonly Encoding encoding = Encoding.UTF8;
-    static readonly int secret_key_size = 32, iv_key_size = 16;
+    static readonly int secret_key_size = 32, iv_key_size = 16, myIterations = 1000;
 
     /// <summary>
     /// Секретная фраза по умолчанию (если пользователь не указал свою) для шифрования
@@ -27,30 +27,32 @@ public static class CipherService
     /// <summary>
     /// Encrypt as string
     /// </summary>
-    public static async Task<string> EncryptAsStringAsync(string clearText, string EncryptionKey, byte[] salt) => Convert.ToBase64String(await EncryptAsync(encoding.GetBytes(clearText), EncryptionKey, salt));
+    public static async Task<string> EncryptAsStringAsync(string clearText, string EncryptionKey, byte[] salt)
+        => Convert.ToBase64String(await EncryptAsync(encoding.GetBytes(clearText), EncryptionKey, salt));
 
     /// <summary>
     /// Encrypt as string
     /// </summary>
-    public static async Task<string> EncryptAsStringAsync(string clearText, string EncryptionKey, string salt) => Convert.ToBase64String(await EncryptAsync(encoding.GetBytes(clearText), EncryptionKey, encoding.GetBytes(salt)));
+    public static async Task<string> EncryptAsStringAsync(string clearText, string EncryptionKey, string salt)
+        => Convert.ToBase64String(await EncryptAsync(encoding.GetBytes(clearText), EncryptionKey, encoding.GetBytes(salt)));
 
     /// <summary>
     /// Encrypt
     /// </summary>
-    public static async Task<byte[]> EncryptAsync(string clearText, string EncryptionKey, string salt) => await EncryptAsync(encoding.GetBytes(clearText), EncryptionKey, encoding.GetBytes(salt));
+    public static async Task<byte[]> EncryptAsync(string clearText, string EncryptionKey, string salt)
+        => await EncryptAsync(encoding.GetBytes(clearText), EncryptionKey, encoding.GetBytes(salt));
 
     /// <summary>
     /// Encrypt
     /// </summary>
-    public static async Task<byte[]> EncryptAsync(byte[] clearBytes, string EncryptionKey, byte[] salt)
+    public static async Task<byte[]> EncryptAsync(byte[] clearBytes, string encryptionKey, byte[] salt)
     {
         using Aes encryption = Aes.Create();
-        using Rfc2898DeriveBytes pdb = new(EncryptionKey, salt, 3, hashAlgorithm: HashAlgorithmName.SHA256);
-        encryption.Key = pdb.GetBytes(secret_key_size);
-        encryption.IV = pdb.GetBytes(iv_key_size);
+        encryption.Key = Rfc2898DeriveBytes.Pbkdf2(encryptionKey, salt, myIterations, HashAlgorithmName.SHA256, secret_key_size);
+        encryption.IV = Rfc2898DeriveBytes.Pbkdf2(encryptionKey, salt, myIterations, HashAlgorithmName.SHA256, iv_key_size);
         using MemoryStream ms = new();
         using CryptoStream cs = new(ms, encryption.CreateEncryptor(), CryptoStreamMode.Write);
-        await cs.WriteAsync(clearBytes, 0, clearBytes.Length);
+        await cs.WriteAsync(clearBytes);
         cs.Close();
         return ms.ToArray();
     }
@@ -59,18 +61,17 @@ public static class CipherService
     /// <summary>
     /// Расшифровать строку
     /// </summary>
-    public static async Task<string> DecryptAsStringAsync(string cipherText, string EncryptionKey, byte[] salt) => Convert.ToBase64String(await DecryptAsync(Convert.FromBase64String(cipherText.Replace(" ", "+")), EncryptionKey, salt));
+    public static async Task<string> DecryptAsStringAsync(string cipherText, string encryptionKey, byte[] salt)
+        => Convert.ToBase64String(await DecryptAsync(Convert.FromBase64String(cipherText.Replace(" ", "+")), encryptionKey, salt));
 
     /// <summary>
     /// Расшифровать
     /// </summary>        
-    public static async Task<byte[]> DecryptAsync(byte[] cipherBytes, string EncryptionKey, byte[] salt)
+    public static async Task<byte[]> DecryptAsync(byte[] cipherBytes, string encryptionKey, byte[] salt)
     {
         using Aes encryption = Aes.Create();
-        
-        using Rfc2898DeriveBytes pdb = new(EncryptionKey, salt, 3, hashAlgorithm: HashAlgorithmName.SHA256);
-        encryption.Key = pdb.GetBytes(secret_key_size);
-        encryption.IV = pdb.GetBytes(iv_key_size);
+        encryption.Key = Rfc2898DeriveBytes.Pbkdf2(encryptionKey, salt, myIterations, HashAlgorithmName.SHA256, secret_key_size);
+        encryption.IV = Rfc2898DeriveBytes.Pbkdf2(encryptionKey, salt, myIterations, HashAlgorithmName.SHA256, iv_key_size);
         using MemoryStream ms = new();
         using CryptoStream cs = new(ms, encryption.CreateDecryptor(), CryptoStreamMode.Write);
         await cs.WriteAsync(cipherBytes);
@@ -81,7 +82,8 @@ public static class CipherService
     /// <summary>
     /// Расшифровать
     /// </summary>
-    public static async Task<MemoryStream> DecryptAsync(MemoryStream ms, string EncryptionKey, byte[] salt) => new(await DecryptAsync(ms.ToArray(), EncryptionKey, salt));
+    public static async Task<MemoryStream> DecryptAsync(MemoryStream ms, string encryptionKey, byte[] salt)
+        => new(await DecryptAsync(ms.ToArray(), encryptionKey, salt));
 
     /// <summary>
     /// Энтропия
