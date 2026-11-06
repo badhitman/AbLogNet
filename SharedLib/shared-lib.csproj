@@ -14,7 +14,7 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="AngleSharp" Version="1.9.1" />
+		<PackageReference Include="AngleSharp" Version="1.10.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="10.0.14" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 	</ItemGroup>
