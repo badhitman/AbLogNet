@@ -14,7 +14,7 @@
 		<PackageReference Include="MailKit" Version="4.18.2" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.14" />
 		<PackageReference Include="MQTTnet" Version="5.2.0.1603" />
-		<PackageReference Include="Telegram.Bot" Version="22.10.3.3" />
+		<PackageReference Include="Telegram.Bot" Version="22.10.4" />
 		<PackageReference Include="MudBlazor" Version="9.12.0" />
 	</ItemGroup>
 
